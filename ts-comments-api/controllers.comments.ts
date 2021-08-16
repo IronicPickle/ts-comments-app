@@ -1,22 +1,18 @@
 import { RequestHandler } from "express";
 import {
   DeleteCommentByIdParams,
-  GetCommentByIdBody,
   GetCommentByIdParams,
   GetCommentsByPostIdParams,
   PatchCommentByIdBody,
   PatchCommentByIdParams,
+  PostComment,
 } from "../common/types";
 import { Errors } from "./errors";
-import {
-  addComment,
-  fetchComment,
-  fetchCommentsByPostId,
-  editComment,
-  removeCommentById,
-} from "./models.comments";
 
-export const postComment: RequestHandler<{}, {}, GetCommentByIdBody> = (
+import { collections } from "./db/db";
+const { comments } = collections;
+
+export const postComment: RequestHandler<{}, {}, Partial<PostComment>> = (
   req,
   res,
   next
@@ -25,35 +21,36 @@ export const postComment: RequestHandler<{}, {}, GetCommentByIdBody> = (
   if (typeof text !== "string") throw { message: Errors.BAD_COMMENT_BODY };
   if (typeof author !== "string") throw { message: Errors.BAD_COMMENT_AUTHOR };
   if (typeof postId !== "number") throw { message: Errors.BAD_POST_ID };
-  addComment({ text, author, postId })
+  comments
+    .create({ text, author, postId })
     .then((comment) => {
       res.status(201).send({ comment });
     })
     .catch(next);
 };
 
-export const getCommentById: RequestHandler<GetCommentByIdParams> = (
+export const getCommentById: RequestHandler<Partial<GetCommentByIdParams>> = (
   req,
   res,
   next
 ) => {
   const { commentId } = req.params;
   if (commentId == null) throw { message: Errors.BAD_COMMENT_ID };
-  fetchComment(commentId)
+  comments
+    .getById(commentId)
     .then((comment) => {
       res.status(200).send({ comment });
     })
     .catch(next);
 };
 
-export const getCommentsByPostId: RequestHandler<GetCommentsByPostIdParams> = (
-  req,
-  res,
-  next
-) => {
+export const getCommentsByPostId: RequestHandler<
+  Partial<GetCommentsByPostIdParams>
+> = (req, res, next) => {
   const { postId } = req.params;
   if (postId == null) throw { message: Errors.BAD_POST_ID };
-  fetchCommentsByPostId(postId)
+  comments
+    .getByPostId(postId)
     .then((comments) => {
       res.status(200).send({ comments });
     })
@@ -61,29 +58,29 @@ export const getCommentsByPostId: RequestHandler<GetCommentsByPostIdParams> = (
 };
 
 export const patchCommentById: RequestHandler<
-  PatchCommentByIdParams,
+  Partial<PatchCommentByIdParams>,
   {},
-  PatchCommentByIdBody
+  Partial<PatchCommentByIdBody>
 > = (req, res, next) => {
   const { commentId } = req.params;
   const { text } = req.body;
   if (commentId == null) throw { message: Errors.BAD_COMMENT_ID };
   if (typeof text !== "string") throw { message: Errors.BAD_COMMENT_BODY };
-  editComment(commentId, { text })
+  comments
+    .editById(commentId, { text })
     .then((comment) => {
       res.status(200).send({ comment });
     })
     .catch(next);
 };
 
-export const deleteCommentById: RequestHandler<DeleteCommentByIdParams> = (
-  req,
-  res,
-  next
-) => {
+export const deleteCommentById: RequestHandler<
+  Partial<DeleteCommentByIdParams>
+> = (req, res, next) => {
   const { commentId } = req.params;
   if (commentId == null) throw { message: Errors.BAD_COMMENT_ID };
-  removeCommentById(commentId)
+  comments
+    .removeById(commentId)
     .then(() => {
       res.status(204).send();
     })

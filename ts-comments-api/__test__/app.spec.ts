@@ -2,19 +2,16 @@ process.env.NODE_ENV = "test";
 import { expect } from "chai";
 import request from "supertest";
 import app from "../app";
-import { client } from "../db/db";
+import { client, collections } from "../db/db";
 import { seed } from "../db/seed";
+const { comments } = collections;
+
 before(() => {
   return seed(client);
 });
-after(() => {
-  return client
-    .db(process.env.DB_NAME)
-    .collection("comments")
-    .drop()
-    .then(() => {
-      return client.close();
-    });
+after(async () => {
+  await comments.collection().drop();
+  return await client.close();
 });
 
 describe("app", () => {
@@ -36,7 +33,7 @@ describe("app", () => {
           expect(comment.postId).to.equal(1);
           expect(comment).to.haveOwnProperty("createdOn");
           expect(comment).to.haveOwnProperty("modifiedOn");
-          expect(comment).to.haveOwnProperty("id");
+          expect(comment).to.haveOwnProperty("_id");
         });
     });
 
@@ -72,14 +69,14 @@ describe("app", () => {
         .post("/api/comments")
         .send(comment)
         .then((response) => {
-          const { id, createdOn, modifiedOn } = response.body.comment;
+          const { _id, createdOn, modifiedOn } = response.body.comment;
           return request(app)
-            .get(`/api/comments/${id}`)
+            .get(`/api/comments/${_id}`)
             .expect(200)
             .then((response) => {
               const { comment } = response.body;
               expect(comment).to.deep.equal({
-                id: id,
+                _id: _id,
                 author: "terri",
                 text: "anxious, nervous, worried?",
                 postId: 1,
@@ -107,12 +104,14 @@ describe("app", () => {
         .then((response) => {
           const { comments } = response.body;
           expect(Array.isArray(comments)).to.equal(true);
-          expect(comments[0]).to.haveOwnProperty("id");
-          expect(comments[0]).to.haveOwnProperty("text");
-          expect(comments[0]).to.haveOwnProperty("author");
-          expect(comments[0]).to.haveOwnProperty("createdOn");
-          expect(comments[0]).to.haveOwnProperty("modifiedOn");
-          expect(comments[0]).to.haveOwnProperty("postId", 1);
+          if (comments.length > 0) {
+            expect(comments[0]).to.haveOwnProperty("_id");
+            expect(comments[0]).to.haveOwnProperty("text");
+            expect(comments[0]).to.haveOwnProperty("author");
+            expect(comments[0]).to.haveOwnProperty("createdOn");
+            expect(comments[0]).to.haveOwnProperty("modifiedOn");
+            expect(comments[0]).to.haveOwnProperty("postId", 1);
+          }
 
           expect(
             comments.every(({ postId }: { postId: number }) => postId === 1)
@@ -140,11 +139,11 @@ describe("app", () => {
         .post("/api/comments")
         .send(comment)
         .then((response) => {
-          const { id } = response.body.comment;
+          const { _id } = response.body.comment;
           return Promise.all([
             response.body.comment,
             request(app)
-              .patch(`/api/comments/${id}`)
+              .patch(`/api/comments/${_id}`)
               .send({
                 text: "new text",
               })
@@ -168,11 +167,11 @@ describe("app", () => {
         .post("/api/comments")
         .send(comment)
         .then((response) => {
-          const { id } = response.body.comment;
+          const { _id } = response.body.comment;
           return Promise.all([
             response.body.comment,
             request(app)
-              .patch(`/api/comments/${id}`)
+              .patch(`/api/comments/${_id}`)
               .send({
                 text: "new text",
               })
@@ -206,14 +205,14 @@ describe("app", () => {
         .post("/api/comments")
         .send(comment)
         .then((response) => {
-          const { id } = response.body.comment;
+          const { _id } = response.body.comment;
           return Promise.all([
             response.body.comment,
-            request(app).delete(`/api/comments/${id}`).expect(204),
+            request(app).delete(`/api/comments/${_id}`).expect(204),
           ]);
         })
-        .then(([{ id }, response]) => {
-          return request(app).get(`/api/comments/${id}`).expect(404);
+        .then(([{ _id }, response]) => {
+          return request(app).get(`/api/comments/${_id}`).expect(404);
         });
     });
     it("404: returns not found when given a non existent commentId", () => {

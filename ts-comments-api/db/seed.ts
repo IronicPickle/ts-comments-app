@@ -1,5 +1,6 @@
 import { MongoClient } from "mongodb";
 const DB_NAME = process.env.DB_NAME!;
+
 export const seed = async (client: MongoClient) => {
   const firstComment = {
     postId: 1,

@@ -1,35 +1,36 @@
 export interface Comment {
+  _id: string;
   text: string;
   author: string;
   postId: number;
+  replyToId?: string;
 
-  id: string;
   createdOn: number;
   modifiedOn: number;
 }
 
-export interface GetCommentByIdBody {
-  text?: string;
-  author?: string;
-  postId?: number;
+export interface PostComment {
+  text: Comment["text"];
+  author: Comment["author"];
+  postId: Comment["postId"];
 }
 
 export interface GetCommentByIdParams {
-  commentId?: string;
+  commentId: Comment["_id"];
 }
 
 export interface GetCommentsByPostIdParams {
-  postId?: string;
+  postId: Comment["postId"];
 }
 
 export interface PatchCommentByIdParams {
-  commentId?: string;
+  commentId: Comment["_id"];
 }
 
 export interface PatchCommentByIdBody {
-  text?: string;
+  text: Comment["text"];
 }
 
 export interface DeleteCommentByIdParams {
-  commentId?: string;
+  commentId: Comment["_id"];
 }
