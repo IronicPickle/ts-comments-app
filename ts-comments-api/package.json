@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "ts-mocha './__test__/**/*.spec.ts'"
+    "start": "NODE_ENV=dev nodemon app.ts",
+    "seed-test": "NODE_ENV=test ts-node ./db/scripts/seed",
+    "seed-dev": "NODE_ENV=development ts-node ./db/scripts/seed",
+    "drop-test": "NODE_ENV=test ts-node ./db/scripts/drop",
+    "drop-dev": "NODE_ENV=development ts-node ./db/scripts/drop",
+    "test": "npm run seed-test && ts-mocha './__test__/**/*.spec.ts' && npm run drop-test"
   },
   "keywords": [],
   "author": "",

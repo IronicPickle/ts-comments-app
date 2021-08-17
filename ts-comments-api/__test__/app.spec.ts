@@ -1,18 +1,12 @@
 process.env.NODE_ENV = "test";
+import "../env/env";
 import { expect } from "chai";
 import request from "supertest";
 import app from "../app";
-import { client, collections } from "../db/db";
-import { seed } from "../db/seed";
-const { comments } = collections;
+import { client } from "../db/db";
 
-before(() => {
-  return seed(client);
-});
-after(async () => {
-  await comments.collection().drop();
-  return await client.close();
-});
+before(async () => await client.connect());
+after(async () => await client.close());
 
 describe("app", () => {
   describe("POST Comment", () => {

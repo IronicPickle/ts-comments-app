@@ -1,18 +1,18 @@
 import { RequestHandler } from "express";
 import {
-  DeleteCommentByIdParams,
-  GetCommentByIdParams,
-  GetCommentsByPostIdParams,
-  PatchCommentByIdBody,
-  PatchCommentByIdParams,
+  DeleteCommentById,
+  GetCommentById,
+  GetCommentsByPostId,
+  PatchCommentById,
   PostComment,
-} from "../common/types";
-import { Errors } from "./errors";
+} from "../../common/apiSchemas/comments";
+import { BackendBody, BackendParams } from "../../common/apiSchemas/utils";
+import { Errors } from "../lib/errors";
 
-import { collections } from "./db/db";
+import { collections } from "../db/db";
 const { comments } = collections;
 
-export const postComment: RequestHandler<{}, {}, Partial<PostComment>> = (
+export const postComment: RequestHandler<{}, {}, BackendBody<PostComment>> = (
   req,
   res,
   next
@@ -21,6 +21,7 @@ export const postComment: RequestHandler<{}, {}, Partial<PostComment>> = (
   if (typeof text !== "string") throw { message: Errors.BAD_COMMENT_BODY };
   if (typeof author !== "string") throw { message: Errors.BAD_COMMENT_AUTHOR };
   if (typeof postId !== "number") throw { message: Errors.BAD_POST_ID };
+
   comments
     .create({ text, author, postId })
     .then((comment) => {
@@ -29,7 +30,7 @@ export const postComment: RequestHandler<{}, {}, Partial<PostComment>> = (
     .catch(next);
 };
 
-export const getCommentById: RequestHandler<Partial<GetCommentByIdParams>> = (
+export const getCommentById: RequestHandler<BackendParams<GetCommentById>> = (
   req,
   res,
   next
@@ -45,7 +46,7 @@ export const getCommentById: RequestHandler<Partial<GetCommentByIdParams>> = (
 };
 
 export const getCommentsByPostId: RequestHandler<
-  Partial<GetCommentsByPostIdParams>
+  BackendParams<GetCommentsByPostId>
 > = (req, res, next) => {
   const { postId } = req.params;
   if (postId == null) throw { message: Errors.BAD_POST_ID };
@@ -58,9 +59,9 @@ export const getCommentsByPostId: RequestHandler<
 };
 
 export const patchCommentById: RequestHandler<
-  Partial<PatchCommentByIdParams>,
+  BackendParams<PatchCommentById>,
   {},
-  Partial<PatchCommentByIdBody>
+  BackendBody<PatchCommentById>
 > = (req, res, next) => {
   const { commentId } = req.params;
   const { text } = req.body;
@@ -75,7 +76,7 @@ export const patchCommentById: RequestHandler<
 };
 
 export const deleteCommentById: RequestHandler<
-  Partial<DeleteCommentByIdParams>
+  BackendParams<DeleteCommentById>
 > = (req, res, next) => {
   const { commentId } = req.params;
   if (commentId == null) throw { message: Errors.BAD_COMMENT_ID };
