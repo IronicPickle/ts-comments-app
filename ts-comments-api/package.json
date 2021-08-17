@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=dev nodemon app.ts",
+    "start": "NODE_ENV=development nodemon app.ts",
     "seed-test": "NODE_ENV=test ts-node ./db/scripts/seed",
     "seed-dev": "NODE_ENV=development ts-node ./db/scripts/seed",
     "drop-test": "NODE_ENV=test ts-node ./db/scripts/drop",
