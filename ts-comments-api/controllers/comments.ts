@@ -18,7 +18,8 @@ export const postComment: RequestHandler<{}, {}, BackendBody<PostComment>> = (
   next
 ) => {
   const { text, author, postId } = req.body;
-  if (typeof text !== "string") throw { message: Errors.BAD_COMMENT_BODY };
+  if (typeof text !== "string" || text.length === 0)
+    throw { message: Errors.BAD_COMMENT_BODY };
   if (typeof author !== "string") throw { message: Errors.BAD_COMMENT_AUTHOR };
   if (typeof postId !== "number") throw { message: Errors.BAD_POST_ID };
 

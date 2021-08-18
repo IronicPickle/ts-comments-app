@@ -7,7 +7,7 @@ export enum Errors {
   BAD_POST_ID = "bad post id",
 }
 
-export const handle400s: ErrorRequestHandler = (err, req, res, next) => {
+export const handle400s: ErrorRequestHandler = (err, _req, res, next) => {
   switch (err.message) {
     case Errors.BAD_COMMENT_ID:
       return res.status(400).send({ msg: "Comment id is invalid" });

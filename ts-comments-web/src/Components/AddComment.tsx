@@ -1,4 +1,5 @@
 import useCommentForm from "./hooks/useCommentForm";
+import { ReqStates } from "./hooks/useRequestState";
 
 interface Props {
   postId: number;
@@ -6,7 +7,7 @@ interface Props {
 
 export default function AddComment(props: Props) {
   const { postId } = props;
-  const { text, setText, onSubmit, error, success } = useCommentForm(postId);
+  const { reqState, text, setText, onSubmit } = useCommentForm(postId);
 
   return (
     <form onSubmit={onSubmit}>
@@ -16,8 +17,11 @@ export default function AddComment(props: Props) {
         onChange={(event) => setText(event.target.value)}
       />
       <button>Submit</button>
-      {error && <p>{error}</p>}
-      {success && <p>Submitted!</p>}
+      {reqState.status === ReqStates.LOADING ? (
+        <p>Loading</p>
+      ) : reqState.status === ReqStates.ERROR ? (
+        <p>{reqState.error}</p>
+      ) : null}
     </form>
   );
 }

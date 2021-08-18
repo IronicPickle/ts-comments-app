@@ -1,34 +1,37 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import { useEffect } from "react";
 import { FormEvent, useContext } from "react";
 import { useState } from "react";
 import { PostComment } from "../../../../common/apiSchemas/comments";
 import { Body, Res } from "../../../../common/apiSchemas/utils";
 import GlobalContext from "../../GlobalContext";
+import useRequestState from "./useRequestState";
 
 const useCommentForm = (postId: number) => {
+  const { reqState, setIdle, setLoading, setSuccess, setError } =
+    useRequestState<Res<PostComment>>();
   const [text, setText] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const { user } = useContext(GlobalContext);
+
+  useEffect(() => {
+    setText("");
+  }, [reqState.status]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSuccess(false);
-    setError(null);
+    setLoading();
     const body: Body<PostComment> = {
       postId,
       text,
       author: user,
     };
-    const res = await axios
+    axios
       .post<Res<PostComment>>("/api/comments", body)
-      .catch((err) => setError("Something went wrong"));
-    if (res == null) setError("Something went wrong");
-    setSuccess(res != null);
-    setText("");
+      .then((res) => setSuccess(res.data))
+      .catch((err: AxiosError) => setError(err.response?.data.msg));
   };
 
-  return { text, setText, onSubmit, error, success };
+  return { reqState, text, setText, onSubmit };
 };
 
 export default useCommentForm;

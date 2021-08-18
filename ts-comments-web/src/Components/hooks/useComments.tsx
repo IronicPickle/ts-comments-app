@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useEffect } from "react";
 import { useState } from "react";
 import {
@@ -7,24 +7,22 @@ import {
 } from "../../../../common/apiSchemas/comments";
 import { Post } from "../../../../common/apiSchemas/posts";
 import { Res } from "../../../../common/apiSchemas/utils";
+import useRequestState from "./useRequestState";
 
 const useComments = (postId?: Post["_id"]) => {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const { reqState, setIdle, setLoading, setSuccess, setError } =
+    useRequestState<Res<GetCommentsByPostId>>();
 
   useEffect(() => {
-    const getComments = async () => {
-      const path = postId ? `/api/post/${postId}/comments` : "/api/comments";
-      const res = await axios
-        .get<Res<GetCommentsByPostId>>(path)
-        .catch((err) => setError("Something went wrong"));
-      if (res == null) return setError("Something went wrong");
-      setComments(res.data.comments);
-    };
-    getComments();
+    setLoading();
+    const path = postId ? `/api/post/${postId}/comments` : "/api/comments";
+    axios
+      .get<Res<GetCommentsByPostId>>(path)
+      .then((res) => setSuccess(res.data))
+      .catch((err: AxiosError) => setError(err.response?.data.msg));
   }, [postId]);
 
-  return { comments, error };
+  return { reqState };
 };
 
 export default useComments;
